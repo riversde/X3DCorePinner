@@ -81,12 +81,16 @@ namespace X3DCorePinner
 
         private Brush FindBrush(string key) => (Brush)FindResource(key);
 
+        /// <summary>Absolute path - never resolve explorer.exe from the app folder or PATH.</summary>
+        private static string ExplorerPath =>
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
+
         private static void OpenFolder(string dir)
         {
             try
             {
                 Directory.CreateDirectory(dir);
-                Process.Start(new ProcessStartInfo("explorer.exe", $"\"{dir}\"") { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(ExplorerPath, $"\"{dir}\"") { UseShellExecute = true });
             }
             catch (Exception ex)
             {
@@ -581,7 +585,7 @@ namespace X3DCorePinner
             try
             {
                 // Through explorer.exe so the browser opens un-elevated in the user's session.
-                Process.Start(new ProcessStartInfo("explorer.exe", e.Uri.AbsoluteUri) { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(ExplorerPath, e.Uri.AbsoluteUri) { UseShellExecute = true });
             }
             catch (Exception ex)
             {

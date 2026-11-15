@@ -33,6 +33,12 @@ public static class SystemAudit
             ? new AuditItem("Administrator rights", AuditStatus.Ok, "Running elevated - can change background app affinity.")
             : new AuditItem("Administrator rights", AuditStatus.Fail, "Not elevated - pinning will fail for most apps.", "Restart the app (it requests admin rights)."));
 
+        // 1b. App location (security): an elevated app should not run from a user-writable folder
+        Add(SecureFolder.AppLocationIsProtected(out string locWhy)
+            ? new AuditItem("App location", AuditStatus.Ok, "Only administrators can modify the app folder.")
+            : new AuditItem("App location", AuditStatus.Warn, locWhy,
+                @"Move the X3DCorePinner folder to C:\Program Files\X3DCorePinner. Programs running without admin rights could otherwise replace files this elevated app loads. Start with Windows requires this."));
+
         // 2. CPU
         if (topo.DetectionError != null)
             Add(new AuditItem("CPU topology", AuditStatus.Fail, $"Could not read cache topology: {topo.DetectionError}"));

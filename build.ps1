@@ -59,7 +59,7 @@ Write-Step "Publishing self-contained single-file ($Runtime)"
 & dotnet publish 'src\X3DCorePinner\X3DCorePinner.csproj' `
     -c $Configuration -r $Runtime --self-contained true `
     -p:PublishSingleFile=true `
-    -p:IncludeNativeLibrariesForSelfExtract=true `
+    -p:IncludeNativeLibrariesForSelfExtract=false `
     -p:EnableCompressionInSingleFile=true `
     -p:DebugType=none `
     -o $out

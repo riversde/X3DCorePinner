@@ -38,7 +38,7 @@ Single-CCD X3D chips (7800X3D, 9800X3D) do not need this: every core already has
 
 ## Install and use
 
-1. Download `X3DCorePinner-vX.Y.Z-win-x64.zip` from **Releases** and extract it anywhere (for example `C:\Tools\X3DCorePinner`).
+1. Download `X3DCorePinner-vX.Y.Z-win-x64.zip` from **Releases**, verify its SHA-256 against the `.sha256` file, and extract it to **`C:\Program Files\X3DCorePinner`**. The app runs with administrator rights, so it belongs in a folder that only administrators can change - *Start with Windows* refuses to run from anywhere else (see [SECURITY.md](SECURITY.md)).
 2. Run `X3DCorePinner.exe` and accept the admin prompt.
 3. **Dashboard** - check that your CPU shows a V-Cache CCD and a Frequency CCD. Turn on **Start with Windows** if you want it always on.
 4. **Games** - your game probably is already listed (CoD/Warzone, CS2, VALORANT, Fortnite, Apex, R6, Overwatch, Marvel Rivals, PUBG, Destiny 2 and more). If not, start the game, click *Refresh* and *Add as game*.
@@ -56,6 +56,8 @@ Use **Frame analysis** in a real match, once with protection paused and once wit
 **Is it safe with anti-cheat?** The game process is never opened or modified, and anti-cheat services are on a built-in skip list. The app only changes the CPU affinity of *other* apps you listed, which is the same thing Task Manager's "Set affinity" does.
 
 **What if X3D Core Pinner crashes while a game runs?** The pinned apps stay on the frequency CCD until each of them restarts. To put them back immediately, open X3D Core Pinner again and press *Emergency restore*.
+
+**Is it safe to run with admin rights?** See [SECURITY.md](SECURITY.md): no telemetry, no data leaves your PC, the only network call is the optional PresentMon download from GitHub, and everything the app executes elevated is kept in admin-only folders.
 
 **Why admin rights?** Windows requires them to change the affinity of processes you did not start from this app (for example services like RGB software).
 

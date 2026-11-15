@@ -25,20 +25,49 @@ public sealed record FrameStats(
 /// </summary>
 public static class PresentMonService
 {
-    public static string ToolDir => Path.Combine(AppInfo.ToolsDir, "PresentMon");
+    /// <summary>
+    /// SECURITY: PresentMon runs elevated, so it is stored in an admin-only folder
+    /// (%ProgramData%\X3DCorePinner\Tools\PresentMon) and pinned by SHA-256 at download.
+    /// A user-writable location would let any program swap the exe and get admin rights.
+    /// </summary>
+    public static string ToolDir => Path.Combine(SecureFolder.ProtectedRoot, "Tools", "PresentMon");
 
-    public static string? FindExisting() =>
-        Directory.Exists(ToolDir)
-            ? Directory.GetFiles(ToolDir, "PresentMon*-x64.exe").OrderByDescending(File.GetLastWriteTimeUtc).FirstOrDefault()
-            : null;
+    private static string PinFile => Path.Combine(ToolDir, "presentmon.pin");
+
+    /// <summary>Return the pinned exe if it is present and its SHA-256 still matches; otherwise null.</summary>
+    public static string? FindExisting()
+    {
+        try
+        {
+            if (!File.Exists(PinFile)) return null;
+            var parts = File.ReadAllText(PinFile).Trim().Split('|');
+            if (parts.Length != 2) return null;
+            string exe = Path.Combine(ToolDir, Path.GetFileName(parts[0]));
+            if (!File.Exists(exe)) return null;
+            if (!string.Equals(SecureFolder.Sha256Of(exe), parts[1], StringComparison.OrdinalIgnoreCase))
+            {
+                Log.Warn("PresentMon hash mismatch - the file changed since download. Deleting it; it will be downloaded again.");
+                try { File.Delete(exe); File.Delete(PinFile); } catch { }
+                return null;
+            }
+            return exe;
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"PresentMon check failed: {ex.Message}");
+            return null;
+        }
+    }
 
     /// <summary>Return the PresentMon console exe, downloading the latest release if needed.</summary>
     public static async Task<string> EnsureAsync(IProgress<string>? progress, CancellationToken ct)
     {
+        // Re-lock the folder every time (fixes permissions if something loosened them).
+        SecureFolder.EnsureAdminOnly(SecureFolder.ProtectedRoot);
+        SecureFolder.EnsureAdminOnly(ToolDir);
+
         var existing = FindExisting();
         if (existing != null) return existing;
-
-        Directory.CreateDirectory(ToolDir);
         using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
         http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("X3DCorePinner", AppInfo.Version));
 
@@ -66,7 +95,9 @@ public static class PresentMonService
                     await src.CopyToAsync(fs, ct).ConfigureAwait(false);
                 }
                 File.Move(tmp, dest, overwrite: true);
-                Log.Ok($"PresentMon downloaded: {dest}");
+                string hash = SecureFolder.Sha256Of(dest);
+                File.WriteAllText(PinFile, $"{name}|{hash}");
+                Log.Ok($"PresentMon downloaded over HTTPS from github.com/GameTechDev: {dest} (SHA-256 {hash})");
                 return dest;
             }
         }

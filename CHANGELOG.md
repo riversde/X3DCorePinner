@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.1 - 2026-11-15
+Security hardening (no feature changes).
+
+- Start with Windows now refuses to register when the app folder can be modified without admin rights (prevents a silent admin-rights bypass through the elevated logon task). Install to `C:\Program Files\X3DCorePinner`.
+- The Task Scheduler XML is written to an admin-only folder (`%ProgramData%\X3DCorePinner`) instead of `%TEMP%`.
+- PresentMon is stored in the admin-only `%ProgramData%\X3DCorePinner\Tools\PresentMon` and pinned by SHA-256 at download; a changed file is deleted and downloaded again instead of being executed.
+- Native WPF libraries ship next to the exe instead of being extracted to `%TEMP%\.net` at run time.
+- `explorer.exe` is started by absolute path.
+- New *App location* check in the system audit.
+
 ## 1.0.0 - 2026-11-15
 First public release.
 

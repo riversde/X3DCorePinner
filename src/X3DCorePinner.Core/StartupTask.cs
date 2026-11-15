@@ -36,9 +36,31 @@ public static class StartupTask
 
     public static bool Install(out string message)
     {
+        // SECURITY: the task starts this exe elevated at every sign-in. If a non-admin
+        // program could replace the exe, that would be a silent admin-rights bypass.
+        if (!SecureFolder.AppLocationIsProtected(out string why))
+        {
+            message = why + "\n\nFor security, Start with Windows only works when X3D Core Pinner is in a folder " +
+                      "that only administrators can change. Move the whole X3DCorePinner folder to " +
+                      @"""C:\Program Files\X3DCorePinner"", run it from there and enable it again.";
+            Log.Warn("Start with Windows refused: app folder is writable by non-admins.");
+            return false;
+        }
+
         string user = WindowsIdentity.GetCurrent().Name;
         string xml = BuildXml(user, AppInfo.ExePath);
-        string tmp = Path.Combine(Path.GetTempPath(), $"x3dcorepinner_task_{Guid.NewGuid():N}.xml");
+        string tmp;
+        try
+        {
+            // Admin-only folder: a non-elevated program cannot swap the XML before schtasks reads it.
+            tmp = Path.Combine(SecureFolder.EnsureAdminOnly(SecureFolder.ProtectedRoot), $"task_{Guid.NewGuid():N}.xml");
+        }
+        catch (Exception ex)
+        {
+            message = $"Could not prepare a protected folder: {ex.Message}";
+            Log.Error(message);
+            return false;
+        }
         try
         {
             File.WriteAllText(tmp, xml, Encoding.Unicode);
