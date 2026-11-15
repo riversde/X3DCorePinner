@@ -7,23 +7,36 @@
     2. Runs the core self-tests (tests\CoreCheck).
     3. Publishes a self-contained, single-file win-x64 build (no .NET needed on target PCs).
     4. Adds README, LICENSE, CHANGELOG and portable.flag.
-    5. Creates dist\X3DCorePinner-v<version>-win-x64.zip and a .sha256 file.
+    5. Creates dist\X3DCorePinner-v<version>-win-x64.zip (portable) and a .sha256 file.
+    6. If Inno Setup 6 is installed, creates dist\X3DCorePinner-v<version>-setup.exe (+ .sha256).
+       Install Inno Setup with:  winget install JRSoftware.InnoSetup
 
 .EXAMPLE
     .\build.ps1
     .\build.ps1 -SkipTests
+    .\build.ps1 -RequireInstaller   # fail if Inno Setup is missing (CI)
 #>
 [CmdletBinding()]
 param(
     [string]$Configuration = 'Release',
     [string]$Runtime = 'win-x64',
-    [switch]$SkipTests
+    [switch]$SkipTests,
+    [switch]$RequireInstaller
 )
 
 $ErrorActionPreference = 'Stop'
 Set-Location -Path $PSScriptRoot
 
 function Write-Step { param([string]$Text) Write-Host "`n==> $Text" -ForegroundColor Cyan }
+
+# Pure .NET SHA-256 (Get-FileHash can be unavailable when 5.1 inherits PS7 module paths).
+function Get-Sha256 {
+    param([string]$Path)
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    $fs = [System.IO.File]::OpenRead($Path)
+    try { return ([BitConverter]::ToString($sha.ComputeHash($fs))).Replace('-', '') }
+    finally { $fs.Dispose(); $sha.Dispose() }
+}
 
 # ------------------------------------------------------------------ SDK check
 Write-Step 'Checking .NET 8 SDK'
@@ -80,14 +93,40 @@ $zip = Join-Path $dist "X3DCorePinner-v$version-$Runtime.zip"
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::CreateFromDirectory($out, $zip, [System.IO.Compression.CompressionLevel]::Optimal, $false)
 
-$sha = [System.Security.Cryptography.SHA256]::Create()
-$fs = [System.IO.File]::OpenRead($zip)
-try { $hash = ([BitConverter]::ToString($sha.ComputeHash($fs))).Replace('-', '') }
-finally { $fs.Dispose(); $sha.Dispose() }
+$hash = Get-Sha256 $zip
 Set-Content -Path "$zip.sha256" -Value "$hash  $(Split-Path $zip -Leaf)" -Encoding ASCII
+
+# ------------------------------------------------------------------ installer (Inno Setup 6)
+Write-Step 'Building installer (Inno Setup 6)'
+$iscc = @(
+    (Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'),
+    (Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe'),
+    (Join-Path $env:LOCALAPPDATA 'Programs\Inno Setup 6\ISCC.exe')
+) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+if (-not $iscc) {
+    $cmd = Get-Command iscc.exe -ErrorAction SilentlyContinue
+    if ($cmd) { $iscc = $cmd.Source }
+}
+
+$setup = $null
+if ($iscc) {
+    & $iscc /Qp "/DMyAppVersion=$version" "/DSourceDir=$out" "/DOutputDir=$dist" (Join-Path $PSScriptRoot 'installer\X3DCorePinner.iss')
+    if ($LASTEXITCODE -ne 0) { throw "Inno Setup compile failed ($LASTEXITCODE)." }
+    $setup = Join-Path $dist "X3DCorePinner-v$version-setup.exe"
+    $setupHash = Get-Sha256 $setup
+    Set-Content -Path "$setup.sha256" -Value "$setupHash  $(Split-Path $setup -Leaf)" -Encoding ASCII
+} else {
+    $msg = 'Inno Setup 6 not found - installer skipped. Install it with:  winget install JRSoftware.InnoSetup'
+    if ($RequireInstaller) { throw $msg }
+    Write-Host $msg -ForegroundColor Yellow
+}
 
 $exe = Get-Item (Join-Path $out 'X3DCorePinner.exe')
 Write-Host ''
 Write-Host "EXE : $($exe.FullName)  ($([math]::Round($exe.Length / 1MB, 1)) MB)" -ForegroundColor Green
 Write-Host "ZIP : $zip" -ForegroundColor Green
 Write-Host "SHA256: $hash" -ForegroundColor Green
+if ($setup) {
+    Write-Host "SETUP : $setup  ($([math]::Round((Get-Item $setup).Length / 1MB, 1)) MB)" -ForegroundColor Green
+    Write-Host "SHA256: $setupHash" -ForegroundColor Green
+}

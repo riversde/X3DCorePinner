@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 - 2026-11-15
+- **Windows installer** (`X3DCorePinner-vX.Y.Z-setup.exe`, Inno Setup): installs to `C:\Program Files\X3DCorePinner`, Start menu entry, optional desktop shortcut, optional *Start with Windows*, clean upgrades and a full uninstaller. The portable ZIP is still published.
+- Uninstall exits the app cleanly (all pinned apps restored), removes the logon task and `%ProgramData%\X3DCorePinner`, and optionally your settings and logs.
+- New headless switches for scripts and installers: `--shutdown`, `--enable-startup`, `--disable-startup`, `--restore-all`, `--cleanup`.
+- Includes the 1.0.1 security hardening below.
+
 ## 1.0.1 - 2026-11-15
 Security hardening (no feature changes).
 

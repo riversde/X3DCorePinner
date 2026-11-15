@@ -49,5 +49,11 @@ Check(s.AvgFps == 200 && s.Bottleneck.StartsWith("GPU"), $"v1 columns: {s.AvgFps
 var f = PresentMonService.SplitCsv("a,\"b,c\",\"d\"\"e\",");
 Check(f.Count == 4 && f[1] == "b,c" && f[2] == "d\"e" && f[3] == "", "csv quoted fields");
 
+// 6. Command-line switches
+Check(CommandLine.FindCommand(Array.Empty<string>()) == null, "no args -> UI start");
+Check(CommandLine.FindCommand(new[] { "--tray" }) == null, "--tray -> UI start");
+Check(CommandLine.FindCommand(new[] { "--tray", " --SHUTDOWN " }) == "--shutdown", "--shutdown detected (case/space-insensitive)");
+Check(CommandLine.FindCommand(new[] { "--cleanup" }) == "--cleanup", "--cleanup detected");
+
 Console.WriteLine(fails == 0 ? "ALL PASSED" : $"{fails} FAILED");
 return fails;

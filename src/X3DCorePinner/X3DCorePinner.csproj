@@ -12,8 +12,8 @@
     <RootNamespace>X3DCorePinner</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
-    <Version>1.0.1</Version>
-    <FileVersion>1.0.1.0</FileVersion>
+    <Version>1.1.0</Version>
+    <FileVersion>1.1.0.0</FileVersion>
     <Authors>PR FRAG</Authors>
     <Company>PR FRAG</Company>
     <Product>X3D Core Pinner</Product>

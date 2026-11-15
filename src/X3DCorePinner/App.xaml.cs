@@ -11,11 +11,13 @@ namespace X3DCorePinner
 {
     public partial class App : Application
     {
-        private const string MutexName = @"Global\PRFRAG.X3DCorePinner.SingleInstance";
-        private const string ShowEventName = @"Global\PRFRAG.X3DCorePinner.Show";
+        private const string MutexName = CommandLine.MutexName;
+        private const string ShowEventName = CommandLine.ShowEventName;
+        private const string ExitEventName = CommandLine.ExitEventName;
 
         private Mutex? _mutex;
         private EventWaitHandle? _showEvent;
+        private EventWaitHandle? _exitEvent;
         private Thread? _showListener;
         private global::X3DCorePinner.MainWindow? _window;
         private bool _exiting;
@@ -31,6 +33,14 @@ namespace X3DCorePinner
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            // ---- headless installer / script commands (no UI, no single-instance lock)
+            int? exitCode = CommandLine.TryRun(e.Args);
+            if (exitCode.HasValue)
+            {
+                Shutdown(exitCode.Value);
+                return;
+            }
 
             // ---- single instance: a second launch just brings the first window up
             _mutex = new Mutex(true, MutexName, out bool createdNew);
@@ -48,6 +58,7 @@ namespace X3DCorePinner
                 return;
             }
             _showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowEventName);
+            _exitEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ExitEventName);
             _showListener = new Thread(ShowListenerLoop) { IsBackground = true, Name = "ShowListener" };
             _showListener.Start();
 
@@ -100,17 +111,32 @@ namespace X3DCorePinner
             }
         }
 
+        /// <summary>Waits for "show window" (second launch) or "exit" (installer --shutdown) signals.</summary>
         private void ShowListenerLoop()
         {
-            while (_showEvent != null)
+            while (_showEvent != null && _exitEvent != null)
             {
                 try
                 {
-                    if (_showEvent.WaitOne()) Dispatcher.InvokeAsync(ShowMainWindow);
+                    int which = WaitHandle.WaitAny(new WaitHandle[] { _showEvent, _exitEvent });
+                    if (_exiting) return;
+                    if (which == 0)
+                    {
+                        Dispatcher.InvokeAsync(ShowMainWindow);
+                    }
+                    else
+                    {
+                        Dispatcher.InvokeAsync(() =>
+                        {
+                            Log.Info("Exit requested by installer/command line.");
+                            ExitApp();
+                        });
+                        return;
+                    }
                 }
                 catch
                 {
-                    return; // handle closed during exit
+                    return; // handles closed during exit
                 }
             }
         }
@@ -206,8 +232,11 @@ namespace X3DCorePinner
             try { Engine?.Stop(); } catch { }
             try { Tray?.Dispose(); } catch { }
             var ev = _showEvent;
+            var xv = _exitEvent;
             _showEvent = null;
-            try { ev?.Set(); ev?.Dispose(); } catch { }
+            _exitEvent = null;
+            try { ev?.Set(); } catch { }
+            try { ev?.Dispose(); xv?.Dispose(); } catch { }
             try { _mutex?.ReleaseMutex(); } catch { }
             _mutex?.Dispose();
             base.OnExit(e);

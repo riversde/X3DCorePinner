@@ -38,12 +38,22 @@ Single-CCD X3D chips (7800X3D, 9800X3D) do not need this: every core already has
 
 ## Install and use
 
-1. Download `X3DCorePinner-vX.Y.Z-win-x64.zip` from **Releases**, verify its SHA-256 against the `.sha256` file, and extract it to **`C:\Program Files\X3DCorePinner`**. The app runs with administrator rights, so it belongs in a folder that only administrators can change - *Start with Windows* refuses to run from anywhere else (see [SECURITY.md](SECURITY.md)).
-2. Run `X3DCorePinner.exe` and accept the admin prompt.
-3. **Dashboard** - check that your CPU shows a V-Cache CCD and a Frequency CCD. Turn on **Start with Windows** if you want it always on.
-4. **Games** - your game probably is already listed (CoD/Warzone, CS2, VALORANT, Fortnite, Apex, R6, Overwatch, Marvel Rivals, PUBG, Destiny 2 and more). If not, start the game, click *Refresh* and *Add as game*.
-5. **Background apps** - add the apps you keep open while gaming.
-6. Play. You get a notification when protection starts and when the session ends.
+**Installer (recommended)**
+
+1. Download `X3DCorePinner-vX.Y.Z-setup.exe` from **Releases** (optionally verify it against the `.sha256` file).
+2. Run it. It installs to `C:\Program Files\X3DCorePinner` (admin-only - see [SECURITY.md](SECURITY.md)), adds a Start menu entry and, if you keep the box ticked, starts with Windows in the tray.
+3. Upgrades: run a newer setup over the old one - your settings are kept. Uninstall from *Settings > Apps*; it restores every app's CPU affinity and removes the startup task.
+
+**Portable ZIP**
+
+Download `X3DCorePinner-vX.Y.Z-win-x64.zip` and extract it to `C:\Program Files\X3DCorePinner` (Start with Windows refuses user-writable folders). Settings stay in a `Data` folder next to the exe.
+
+**First run**
+
+1. **Dashboard** - check that your CPU shows a V-Cache CCD and a Frequency CCD.
+2. **Games** - your game probably is already listed (CoD/Warzone, CS2, VALORANT, Fortnite, Apex, R6, Overwatch, Marvel Rivals, PUBG, Destiny 2 and more). If not, start the game, click *Refresh* and *Add as game*.
+3. **Background apps** - add the apps you keep open while gaming.
+4. Play. You get a notification when protection starts and when the session ends.
 
 Closing the window keeps it running in the tray (configurable). Right-click the tray icon for *Pause*, *Emergency restore* and *Exit*.
 
@@ -74,7 +84,7 @@ cd X3DCorePinner
 build.cmd
 ```
 
-`build.ps1` runs the core self-tests, publishes a self-contained single-file exe and creates `dist\X3DCorePinner-v<version>-win-x64.zip` plus a `.sha256`. Pushing a `v*` tag builds and publishes a GitHub release automatically (`.github/workflows/build.yml`).
+`build.ps1` runs the core self-tests, publishes a self-contained single-file exe and creates `dist\X3DCorePinner-v<version>-win-x64.zip`, and - if [Inno Setup 6](https://jrsoftware.org/isinfo.php) is installed (`winget install JRSoftware.InnoSetup`) - `dist\X3DCorePinner-v<version>-setup.exe`, each with a `.sha256`. Pushing a `v*` tag builds and publishes a GitHub release automatically (`.github/workflows/build.yml`).
 
 ### Project layout
 
@@ -82,7 +92,8 @@ build.cmd
 |---|---|
 | `src/X3DCorePinner.Core` | Engine: topology (GetLogicalProcessorInformationEx), pinning engine, PDH CCD monitor, system audit, PresentMon service, startup task, config, logging |
 | `src/X3DCorePinner` | WPF app: dark UI, tray icon, notifications |
-| `tests/CoreCheck` | Self-tests for config, task XML and frame-statistics math |
+| `installer/X3DCorePinner.iss` | Inno Setup script (Program Files install, startup task, clean uninstall) |
+| `tests/CoreCheck` | Self-tests for config, task XML, command-line switches and frame-statistics math |
 
 ## Credits
 
