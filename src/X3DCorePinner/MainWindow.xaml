@@ -1,0 +1,427 @@
+<Window x:Class="X3DCorePinner.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="X3D Core Pinner"
+        Width="1100" Height="740" MinWidth="920" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgBrush}"
+        Foreground="{StaticResource TextBrush}"
+        FontFamily="Segoe UI" FontSize="13"
+        Icon="Assets/app.ico"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ======================================================== header -->
+        <Border Grid.Row="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="20,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Image Source="Assets/app.ico" Width="34" Height="34" Margin="0,0,12,0" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="X3D Core Pinner" FontSize="18" FontWeight="SemiBold" />
+                    <TextBlock x:Name="HeaderCpu" Style="{StaticResource Sub}" Text="Detecting CPU..." />
+                </StackPanel>
+                <Border x:Name="StatusPill" Grid.Column="2" CornerRadius="14" Padding="14,6" Background="#1F2937" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="{StaticResource SubTextBrush}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                        <TextBlock x:Name="StatusPillText" Text="Starting" FontWeight="SemiBold" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ======================================================== body -->
+        <TabControl Grid.Row="1" x:Name="Nav" Style="{StaticResource NavTabControl}" SelectionChanged="Nav_SelectionChanged">
+
+            <!-- ==================================================== DASHBOARD -->
+            <TabItem Header="Dashboard" Style="{StaticResource NavItem}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock x:Name="StatusTitle" Style="{StaticResource H1}" Text="Starting..." />
+                                    <TextBlock x:Name="StatusDetail" Style="{StaticResource Sub}" Margin="0,6,0,0" Text="" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="BtnToggle" Style="{StaticResource PrimaryButton}" Content="Pause protection" Click="BtnToggle_Click" />
+                                    <Button x:Name="BtnRestore" Style="{StaticResource DangerButton}" Content="Emergency restore" Margin="0"
+                                            ToolTip="Set every listed background app back to all CPU cores right now."
+                                            Click="BtnRestore_Click" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- CPU / CCD load -->
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource H2}" Text="CPU and CCD load (live)" />
+                                    <TextBlock x:Name="CpuName" FontWeight="SemiBold" Text="-" />
+                                    <TextBlock x:Name="CpuTopo" Style="{StaticResource Sub}" Margin="0,4,0,12" Text="-" />
+                                    <ItemsControl x:Name="CcdList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="0,0,0,12">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+                                                        <TextBlock Grid.Column="1" Text="{Binding ValueText}" Foreground="{StaticResource SubTextBrush}" />
+                                                    </Grid>
+                                                    <ProgressBar Value="{Binding Util, Mode=OneWay}" Foreground="{Binding Brush}" Margin="0,6,0,0" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Style="{StaticResource Sub}" Text="While a game runs, AMD's driver parks the frequency CCD and the game uses the V-Cache CCD. X3D Core Pinner moves your background apps to the frequency CCD so they stop competing with the game." />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Session -->
+                            <Border Grid.Column="2" Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource H2}" Text="Current session" />
+                                    <Grid Margin="0,4,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Style="{StaticResource Sub}" Text="Game" />
+                                            <TextBlock x:Name="SessGame" Style="{StaticResource Metric}" FontSize="18" Text="-" TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Style="{StaticResource Sub}" Text="Running for" />
+                                            <TextBlock x:Name="SessTime" Style="{StaticResource Metric}" Text="-" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Style="{StaticResource Sub}" Text="Apps pinned" />
+                                            <TextBlock x:Name="SessPinned" Style="{StaticResource Metric}" Text="0" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource H2}" Text="Settings" Margin="0,22,0,6" />
+                                    <CheckBox x:Name="ChkStartup" Style="{StaticResource Switch}" Content="Start with Windows (in the tray, no UAC prompt)" Click="ChkStartup_Click" />
+                                    <CheckBox x:Name="ChkNotify" Style="{StaticResource Switch}" Content="Show notifications" Click="Settings_Click" />
+                                    <CheckBox x:Name="ChkLowerPrio" Style="{StaticResource Switch}" Content="Also lower pinned apps to Below Normal priority" Click="Settings_Click" />
+                                    <CheckBox x:Name="ChkCloseToTray" Style="{StaticResource Switch}" Content="Closing the window keeps it running in the tray" Click="Settings_Click" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <TextBlock Text="Check for new processes every" VerticalAlignment="Center" />
+                                        <TextBox x:Name="TxtInterval" Width="48" Margin="8,0" TextAlignment="Center" LostFocus="TxtInterval_LostFocus" />
+                                        <TextBlock Text="seconds" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ==================================================== GAMES -->
+            <TabItem Header="Games" Style="{StaticResource NavItem}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource Card}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top">
+                                <TextBlock Style="{StaticResource H2}" Text="Games" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,0,0,10"
+                                           Text="Protection turns on while any of these executables runs. The game itself is never modified." />
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="TxtGame" KeyDown="TxtGame_KeyDown" ToolTip="Executable name, e.g. cod.exe" />
+                                    <Button Grid.Column="1" Content="Add" Margin="8,0,0,0" Click="BtnAddGame_Click" />
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Content="Remove selected" Click="BtnRemoveGame_Click" />
+                                <Button Content="Reset to defaults" Click="BtnResetGames_Click" />
+                            </StackPanel>
+                            <ListBox x:Name="LstGames" SelectionMode="Extended" />
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource Card}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top">
+                                <TextBlock Style="{StaticResource H2}" Text="Running processes" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,0,0,10" Text="Start your game, refresh, select it and add it." />
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Content="Refresh" Click="BtnRefreshRunning_Click" />
+                                <Button Style="{StaticResource PrimaryButton}" Content="Add as game" Click="BtnAddRunningGame_Click" />
+                            </StackPanel>
+                            <ListBox x:Name="LstRunningGames" SelectionMode="Extended" />
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ==================================================== BACKGROUND APPS -->
+            <TabItem Header="Background apps" Style="{StaticResource NavItem}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="3*" />
+                        <RowDefinition Height="2*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Style="{StaticResource Card}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top">
+                                <TextBlock Style="{StaticResource H2}" Text="Background apps" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,0,0,10"
+                                           Text="Moved to the frequency CCD while a game runs, then restored. Apps stay open. System, security and anti-cheat processes are always skipped." />
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="TxtApp" KeyDown="TxtApp_KeyDown" ToolTip="Executable name, e.g. discord.exe" />
+                                    <Button Grid.Column="1" Content="Add" Margin="8,0,0,0" Click="BtnAddApp_Click" />
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Content="Remove selected" Click="BtnRemoveApp_Click" />
+                                <Button Content="Reset to defaults" Click="BtnResetApps_Click" />
+                            </StackPanel>
+                            <ListBox x:Name="LstApps" SelectionMode="Extended" />
+                        </DockPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource Card}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top">
+                                <TextBlock Style="{StaticResource H2}" Text="Running processes" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,0,0,10" Text="Pick apps you keep open while gaming." />
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Content="Refresh" Click="BtnRefreshRunning_Click" />
+                                <Button Style="{StaticResource PrimaryButton}" Content="Add as background app" Click="BtnAddRunningApp_Click" />
+                            </StackPanel>
+                            <ListBox x:Name="LstRunningApps" SelectionMode="Extended" />
+                        </DockPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Grid.ColumnSpan="3" Style="{StaticResource Card}" Margin="0">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Style="{StaticResource H2}" Text="Pinned right now" />
+                            <DataGrid x:Name="GridPinned">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Process" Binding="{Binding Name}" Width="2*" />
+                                    <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="*" />
+                                    <DataGridTextColumn Header="Original affinity" Binding="{Binding OriginalMaskHex}" Width="2*" />
+                                    <DataGridTextColumn Header="Priority lowered" Binding="{Binding PriorityLowered}" Width="*" />
+                                    <DataGridTextColumn Header="Pinned at" Binding="{Binding PinnedAtText}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ==================================================== DIAGNOSTICS -->
+            <TabItem Header="Diagnostics" Style="{StaticResource NavItem}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Style="{StaticResource Card}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top">
+                                <TextBlock Style="{StaticResource H2}" Text="System audit" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,0,0,10"
+                                           Text="V-Cache driver, power plan, Game Mode, background capture, MPO, windowed-game optimizations and overlays." />
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <Button Style="{StaticResource PrimaryButton}" x:Name="BtnAudit" Content="Run audit" Click="BtnAudit_Click" />
+                                </StackPanel>
+                            </StackPanel>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="AuditList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{StaticResource PanelBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Background="{Binding Brush}" CornerRadius="4" Padding="8,2" VerticalAlignment="Top" Margin="0,0,12,0" MinWidth="52">
+                                                        <TextBlock Text="{Binding StatusText}" FontWeight="Bold" FontSize="11" Foreground="#0F1115" HorizontalAlignment="Center" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                                        <TextBlock Text="{Binding Detail}" Style="{StaticResource Sub}" Margin="0,2,0,0" />
+                                                        <TextBlock Text="{Binding Fix}" Visibility="{Binding FixVisibility}" Foreground="{StaticResource AccentBrush}" TextWrapping="Wrap" Margin="0,4,0,0" FontSize="12.5" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource Card}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top">
+                                <TextBlock Style="{StaticResource H2}" Text="Top CPU users" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,0,0,10"
+                                           Text="5-second sample, % of total CPU (one thread = 100 / logical CPUs). Run it while your game is open to see what competes with it." />
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <Button Style="{StaticResource PrimaryButton}" x:Name="BtnTopCpu" Content="Sample 5 seconds" Click="BtnTopCpu_Click" />
+                                </StackPanel>
+                            </StackPanel>
+                            <DataGrid x:Name="GridTopCpu">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Process" Binding="{Binding Name}" Width="2*" />
+                                    <DataGridTextColumn Header="CPU %" Binding="{Binding CpuPct}" Width="*" />
+                                    <DataGridTextColumn Header="Threads" Binding="{Binding Threads}" Width="*" />
+                                    <DataGridTextColumn Header="Count" Binding="{Binding Instances}" Width="*" />
+                                    <DataGridTextColumn Header="Game" Binding="{Binding IsGame}" Width="*" />
+                                    <DataGridTextColumn Header="Pinned list" Binding="{Binding IsBackgroundTarget}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ==================================================== FRAME ANALYSIS -->
+            <TabItem Header="Frame analysis" Style="{StaticResource NavItem}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H2}" Text="Frame analysis (Intel PresentMon)" />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,0,0,12"
+                                           Text="Measures real FPS, 1% lows, CPU vs GPU time per frame and whether a borderless game is sent straight to the display (Independent Flip). PresentMon (MIT license, by Intel) is downloaded from its official GitHub on first use." />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="220" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="70" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Game exe" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                    <TextBox Grid.Column="1" x:Name="TxtFaGame" />
+                                    <Button Grid.Column="2" Content="Detect" Margin="8,0,16,0" Click="BtnFaDetect_Click" />
+                                    <TextBlock Grid.Column="3" Text="Seconds" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                    <TextBox Grid.Column="4" x:Name="TxtFaSeconds" Text="60" TextAlignment="Center" />
+                                    <Button Grid.Column="5" x:Name="BtnFaCapture" Style="{StaticResource PrimaryButton}" Content="Start capture" Margin="12,0,0,0" Click="BtnFaCapture_Click" />
+                                </Grid>
+                                <TextBlock x:Name="FaProgress" Style="{StaticResource Sub}" Margin="0,12,0,0" Text="Start your game, get into a match, then press Start capture and return to the game." />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" x:Name="FaResults" Visibility="Collapsed">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H2}" Text="Results" />
+                                <UniformGrid Columns="6" Margin="0,4,0,14">
+                                    <StackPanel><TextBlock Style="{StaticResource Sub}" Text="Average FPS" /><TextBlock x:Name="FaFps" Style="{StaticResource Metric}" Text="-" /></StackPanel>
+                                    <StackPanel><TextBlock Style="{StaticResource Sub}" Text="1% low FPS" /><TextBlock x:Name="FaLow" Style="{StaticResource Metric}" Text="-" /></StackPanel>
+                                    <StackPanel><TextBlock Style="{StaticResource Sub}" Text="Frame time" /><TextBlock x:Name="FaFrame" Style="{StaticResource Metric}" Text="-" /></StackPanel>
+                                    <StackPanel><TextBlock Style="{StaticResource Sub}" Text="CPU busy / frame" /><TextBlock x:Name="FaCpu" Style="{StaticResource Metric}" Text="-" /></StackPanel>
+                                    <StackPanel><TextBlock Style="{StaticResource Sub}" Text="GPU busy / frame" /><TextBlock x:Name="FaGpu" Style="{StaticResource Metric}" Text="-" /></StackPanel>
+                                    <StackPanel><TextBlock Style="{StaticResource Sub}" Text="Display latency" /><TextBlock x:Name="FaLat" Style="{StaticResource Metric}" Text="-" /></StackPanel>
+                                </UniformGrid>
+                                <TextBlock Text="Bottleneck" FontWeight="SemiBold" />
+                                <TextBlock x:Name="FaBottleneck" Style="{StaticResource Sub}" Margin="0,2,0,10" />
+                                <TextBlock Text="Present path" FontWeight="SemiBold" />
+                                <TextBlock x:Name="FaVerdict" Style="{StaticResource Sub}" Margin="0,2,0,4" />
+                                <TextBlock x:Name="FaModes" Style="{StaticResource Sub}" Margin="0,0,0,10" />
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Open reports folder" Click="BtnOpenReports_Click" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ==================================================== LOGS -->
+            <TabItem Header="Logs" Style="{StaticResource NavItem}">
+                <Border Style="{StaticResource Card}" Margin="0">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Style="{StaticResource H2}" Text="Activity log" Margin="0,0,16,0" VerticalAlignment="Center" />
+                            <Button Content="Open logs folder" Click="BtnOpenLogs_Click" />
+                            <Button Content="Open data folder" Click="BtnOpenData_Click" />
+                        </StackPanel>
+                        <TextBox x:Name="TxtLog" IsReadOnly="True" FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap" />
+                    </DockPanel>
+                </Border>
+            </TabItem>
+
+            <!-- ==================================================== ABOUT -->
+            <TabItem Header="About" Style="{StaticResource NavItem}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H1}" Text="X3D Core Pinner" />
+                                <TextBlock x:Name="AboutVersion" Style="{StaticResource Sub}" Margin="0,4,0,14" />
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
+                                           Text="On dual-CCD Ryzen X3D CPUs (7950X3D, 7900X3D, 9950X3D, 9900X3D) only one CCD has the extra 3D V-Cache. While you play, AMD's driver parks the other CCD so the game lands on the cache cores - but every background app (browser, Discord, launchers, RGB and monitoring tools) lands there too and competes with the game." />
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
+                                           Text="X3D Core Pinner watches for your games and, only while one is running, moves the background apps you choose to the frequency CCD. When the game closes, every app goes back to its original affinity. The game process, Windows, security and anti-cheat processes are never touched." />
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,14" Foreground="{StaticResource WarnBrush}"
+                                           Text="Results depend on the game and system. Measure before and after with Frame analysis. Provided as-is, without warranty (MIT License)." />
+                                <TextBlock>
+                                    <Run Text="Source code and releases: " />
+                                    <Hyperlink x:Name="RepoLink" NavigateUri="https://github.com/riversde/X3DCorePinner" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{StaticResource AccentBrush}">
+                                        <Run x:Name="RepoLinkText" Text="github.com/riversde/X3DCorePinner" />
+                                    </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,14,0,0"
+                                           Text="Frame analysis uses Intel PresentMon (MIT License, github.com/GameTechDev/PresentMon), downloaded on demand and not bundled." />
+                                <TextBlock Style="{StaticResource Sub}" Margin="0,4,0,0" Text="Made by PR FRAG. Not affiliated with AMD, Intel, NVIDIA or any game publisher." />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+</Window>

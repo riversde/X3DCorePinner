@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Explicit usings: WPF + WinForms share type names (Application, MessageBox...) -->
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>X3DCorePinner</AssemblyName>
+    <RootNamespace>X3DCorePinner</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Authors>PR FRAG</Authors>
+    <Company>PR FRAG</Company>
+    <Product>X3D Core Pinner</Product>
+    <Description>Keeps the AMD Ryzen X3D V-Cache CCD free for games by moving background apps to the frequency CCD.</Description>
+    <Copyright>Copyright (c) 2026 PR FRAG</Copyright>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- WFAC010: WinForms analyzer wants DPI set in code; this is a WPF app whose
+         PerMonitorV2 DPI awareness must stay in app.manifest. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\X3DCorePinner.Core\X3DCorePinner.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
+
+</Project>

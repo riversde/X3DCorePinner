@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>X3DCorePinner.Core</RootNamespace>
+    <AssemblyName>X3DCorePinner.Core</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>PR FRAG</Authors>
+    <Product>X3D Core Pinner</Product>
+    <Copyright>Copyright (c) 2026 PR FRAG</Copyright>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>
