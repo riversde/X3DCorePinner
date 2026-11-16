@@ -27,6 +27,16 @@ X3D Core Pinner fixes the second half: **only while a game you listed is running
 - **Frame analysis** - built-in Intel PresentMon capture: average FPS, 1% lows, CPU vs GPU time per frame, display latency, present mode (Independent Flip vs DWM composed) and a bottleneck verdict.
 - **Portable** - single exe, no installer, no .NET install needed.
 
+## Screenshots
+
+| Dashboard | Diagnostics |
+|---|---|
+| ![Dashboard - live V-Cache and frequency CCD load, session and settings](docs/screenshots/01-dashboard.png) | ![Diagnostics - system audit and top CPU users](docs/screenshots/04-diagnostics.png) |
+| **Games** | **Background apps** |
+| ![Games - list and running-process picker](docs/screenshots/02-games.png) | ![Background apps - list, picker and pinned processes](docs/screenshots/03-background-apps.png) |
+| **Frame analysis** | **About** |
+| ![Frame analysis with Intel PresentMon](docs/screenshots/05-frame-analysis.png) | ![About](docs/screenshots/06-about.png) |
+
 ## Requirements
 
 - Windows 10 or 11 (x64)
@@ -93,6 +103,7 @@ build.cmd
 | `src/X3DCorePinner.Core` | Engine: topology (GetLogicalProcessorInformationEx), pinning engine, PDH CCD monitor, system audit, PresentMon service, startup task, config, logging |
 | `src/X3DCorePinner` | WPF app: dark UI, tray icon, notifications |
 | `installer/X3DCorePinner.iss` | Inno Setup script (Program Files install, startup task, clean uninstall) |
+| `docs/Capture-Screenshots.ps1` | Re-creates the README screenshots (admin PowerShell, app installed) |
 | `tests/CoreCheck` | Self-tests for config, task XML, command-line switches and frame-statistics math |
 
 ## Credits
